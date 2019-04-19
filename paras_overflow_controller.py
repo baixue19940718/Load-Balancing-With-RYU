@@ -41,7 +41,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         datapath = ev.msg.datapath
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
-        
+        print('########################################Feature Handler DPID: {}'.format(datapath.id))
         # Insert Static rule
         match = parser.OFPMatch()
         actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
@@ -184,3 +184,5 @@ class SimpleSwitch13(app_manager.RyuApp):
                                   tcp_dst=tcp_pkt.dst_port)
             actions=[parser.OFPActionOutput(2)]
             self.add_flow(datapath,10,match,actions)
+        
+        print('########################################DPID: {}'.format(datapath.id))
