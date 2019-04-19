@@ -41,6 +41,9 @@ class SimpleSwitch13(app_manager.RyuApp):
         datapath = ev.msg.datapath
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
+        msg = ev.msg
+        pkt = packet.Packet(msg.data)
+        tcp_pkt = pkt.get_protocol(tcp.tcp)
         print('########################################Feature Handler DPID: {}'.format(datapath.id))
         # Insert Static rule
         match = parser.OFPMatch()
@@ -53,7 +56,13 @@ class SimpleSwitch13(app_manager.RyuApp):
             # for switch 1, what port number should choose to forward that dst address
             self.add_layer4_rules(datapath, inet.IPPROTO_ICMP, '10.0.0.1', 10, 1)
             self.add_layer4_rules(datapath, inet.IPPROTO_ICMP, '10.0.0.2', 10, 2)
-            
+            print ('########################################Going to controller for TCP packets')
+            match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, ipv4_src='10.0.0.1', ipv4_dst='10.0.0.2', tcp_src=tcp_pkt.src_port, 
+                                  tcp_dst=tcp_pkt.dst_port)
+            actions=[parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
+                                          ofproto.OFPCML_NO_BUFFER)]
+            self.add_flow(datapath,10,match,actions)
+                
         elif dpid == 2:
             self.add_layer4_rules(datapath, inet.IPPROTO_ICMP, '10.0.0.1', 10, 1)
             self.add_layer4_rules(datapath, inet.IPPROTO_ICMP, '10.0.0.2', 10, 2)
