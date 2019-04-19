@@ -27,98 +27,41 @@ class SimpleSwitch13(app_manager.RyuApp):
         self.arp_table["10.0.0.1"] = "00:00:00:00:00:01"
         self.arp_table["10.0.0.2"] = "00:00:00:00:00:02"
 
+    """
+        Hand-shake event call back method
+        This is the very initial method where the switch hand shake with the controller
+        It checks whether both are using the same protocol version: OpenFlow 1.3 in this case
+        Therefore in this method, you can setup some static rules.
+        e.g. the rules which sends unknown packets to the controller 
+             the rules directing TCP/UDP/ICMP traffic
+             ACL rules
+    """
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
         datapath = ev.msg.datapath
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
-        dpid = datapath.id
-        msg = ev.msg
-        pkt = packet.Packet(msg.data)
-        tcp_pkt = pkt.get_protocol(tcp.tcp)
         
+        # Insert Static rule
         match = parser.OFPMatch()
         actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
                                           ofproto.OFPCML_NO_BUFFER)]
         self.add_flow(datapath, 0, match, actions)
-        print ("#########################################################DPID:{}".format(dpid))
-        '''
-        if dpid == 1:
-            self.add_layer4_rules(datapath, inet.IPPROTO_ICMP, '10.0.0.1', 10, 1)
-            self.add_layer4_rules(datapath, inet.IPPROTO_ICMP, '10.0.0.2', 10, 2)
-            
-            match=parser.OFPMatch(eth_type=0x0800, in_port=1, tcp_src=tcp_pkt.src_port, 
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
-                                              ofproto.OFPCML_NO_BUFFER)]
-
-            match=parser.OFPMatch(eth_type=0x0800, in_port=2, tcp_src=tcp_pkt.src_port,
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
-                                              ofproto.OFPCML_NO_BUFFER)]
-            self.add_flow(datapath,10,match,actions)
+        dpid = datapath.id  # classifying the switch ID
+        if dpid == 1: # switch S1
+            #10.0.0.1 is dst ip address, 1 is switch port number
+            # for switch 1, what port number should choose to forward that dst address
+            self.add_layer4_rules(datapath, inet.IPPROTO_TCP, '10.0.0.1', 10, 1)
+            self.add_layer4_rules(datapath, inet.IPPROTO_TCP, '10.0.0.2', 10, 2)
             
         elif dpid == 2:
-            self.add_layer4_rules(datapath, inet.IPPROTO_ICMP, '10.0.0.1', 10, 1)
-            self.add_layer4_rules(datapath, inet.IPPROTO_ICMP, '10.0.0.2', 10, 2)
+            self.add_layer4_rules(datapath, inet.IPPROTO_TCP, '10.0.0.1', 10, 1)
+            self.add_layer4_rules(datapath, inet.IPPROTO_TCP, '10.0.0.2', 10, 2)
             
-            match=parser.OFPMatch(eth_type=0x0800, in_port=1, tcp_src=tcp_pkt.src_port, 
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
-                                              ofproto.OFPCML_NO_BUFFER)]
-
-            match=parser.OFPMatch(eth_type=0x0800, in_port=2, tcp_src=tcp_pkt.src_port,
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
-                                              ofproto.OFPCML_NO_BUFFER)]
-            self.add_flow(datapath,10,match,actions)
-
         elif dpid == 3:
-            self.add_layer4_rules(datapath, inet.IPPROTO_ICMP, '10.0.0.1', 10, 1)
-            self.add_layer4_rules(datapath, inet.IPPROTO_ICMP, '10.0.0.2', 10, 2)
-            
-            match=parser.OFPMatch(eth_type=0x0800, in_port=1, tcp_src=tcp_pkt.src_port, 
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
-                                              ofproto.OFPCML_NO_BUFFER)]
-
-            match=parser.OFPMatch(eth_type=0x0800, in_port=2, tcp_src=tcp_pkt.src_port,
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
-                                              ofproto.OFPCML_NO_BUFFER)]
-            self.add_flow(datapath,10,match,actions)
-            
-        elif dpid == 4:
-            self.add_layer4_rules(datapath, inet.IPPROTO_ICMP, '10.0.0.1', 10, 1)
-            self.add_layer4_rules(datapath, inet.IPPROTO_ICMP, '10.0.0.2', 10, 2)
-            
-            match=parser.OFPMatch(eth_type=0x0800, in_port=1, tcp_src=tcp_pkt.src_port, 
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
-                                              ofproto.OFPCML_NO_BUFFER)]
-
-            match=parser.OFPMatch(eth_type=0x0800, in_port=2, tcp_src=tcp_pkt.src_port,
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
-                                              ofproto.OFPCML_NO_BUFFER)]
-            self.add_flow(datapath,10,match,actions)
-            
-        elif dpid == 5:
-            self.add_layer4_rules(datapath, inet.IPPROTO_ICMP, '10.0.0.1', 10, 2)
-            self.add_layer4_rules(datapath, inet.IPPROTO_ICMP, '10.0.0.2', 10, 1)
-            
-            match=parser.OFPMatch(eth_type=0x0800, in_port=1, tcp_src=tcp_pkt.src_port, 
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
-                                              ofproto.OFPCML_NO_BUFFER)]
-
-            match=parser.OFPMatch(eth_type=0x0800, in_port=2, tcp_src=tcp_pkt.src_port,
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
-                                              ofproto.OFPCML_NO_BUFFER)]
-            self.add_flow(datapath,10,match,actions)
-        '''    
-            
+            self.add_layer4_rules(datapath, inet.IPPROTO_TCP, '10.0.0.1', 10, 1)
+            self.add_layer4_rules(datapath, inet.IPPROTO_TCP, '10.0.0.2', 10, 2)
+         
     """ 
         Call back method for PacketIn Message
         This is the call back method when a PacketIn Msg is sent
@@ -209,7 +152,8 @@ class SimpleSwitch13(app_manager.RyuApp):
         datapath.send_msg(out)
 
     """
-        Methods to handle TCP/IP. 
+        Methods to handle TCP/IP. In this implementation the controller
+        generate the TCP RST for connections between h1 and h3.
         In switch_features_handler() you should put a static rule to fwd 
         those packets to the controller, and in handle_ip() you need to 
         generate and return the TCP RST with PacketOut Message
@@ -220,49 +164,18 @@ class SimpleSwitch13(app_manager.RyuApp):
         parser = datapath.ofproto_parser
         ipv4_pkt = pkt.get_protocol(ipv4.ipv4) # parse out the IPv4 pkt
         tcp_pkt = pkt.get_protocol(tcp.tcp)
-        dpid = datapath.id
-        
-        if (dpid == 1):
-            match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, tcp_src=tcp_pkt.src_port, 
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(2)]
-
-            match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, tcp_src=tcp_pkt.src_port,
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(1)]
-            self.add_flow(datapath,10,match,actions)
-        
-        elif (dpid == 2):
-            match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, tcp_src=tcp_pkt.src_port, 
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(2)]
-
-            match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, tcp_src=tcp_pkt.src_port,
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(1)]
-            self.add_flow(datapath,10,match,actions)
-        
-        elif (dpid == 3):
-            match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, tcp_src=tcp_pkt.src_port, 
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(2)]
-
-            match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, tcp_src=tcp_pkt.src_port,
-                                  tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(1)]
-            self.add_flow(datapath,10,match,actions)
-            
-        elif (dpid == 4):
+        if (datapath.id == 4):
             match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, ipv4_src='10.0.0.1', ipv4_dst='10.0.0.2', tcp_src=tcp_pkt.src_port, 
                                   tcp_dst=tcp_pkt.dst_port)
             actions=[parser.OFPActionOutput(2)]
-
+            self.add_flow(datapath,10,match,actions)
+            
             match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, ipv4_src='10.0.0.2', ipv4_dst='10.0.0.1', tcp_src=tcp_pkt.src_port,
                                   tcp_dst=tcp_pkt.dst_port)
             actions=[parser.OFPActionOutput(1)]
             self.add_flow(datapath,10,match,actions)
             
-        elif (dpid == 5):
+        if (datapath.id == 5):
             match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, ipv4_src='10.0.0.1', ipv4_dst='10.0.0.2', tcp_src=tcp_pkt.src_port,
                                   tcp_dst=tcp_pkt.dst_port) 
             actions=[parser.OFPActionOutput(1)]
@@ -271,5 +184,3 @@ class SimpleSwitch13(app_manager.RyuApp):
                                   tcp_dst=tcp_pkt.dst_port)
             actions=[parser.OFPActionOutput(2)]
             self.add_flow(datapath,10,match,actions)
-            
-        print ("#########################################################DPID:{}".format(dpid))
