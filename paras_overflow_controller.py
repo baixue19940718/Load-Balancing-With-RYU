@@ -179,20 +179,20 @@ class SimpleSwitch13(app_manager.RyuApp):
             actions=[parser.OFPActionOutput(2)]
             self.add_flow(datapath,10,match,actions)
             
-            match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, ipv4_src='10.0.0.2', ipv4_dst='10.0.0.1', tcp_src=tcp_pkt.src_port,
+            match1=parser.OFPMatch(eth_type=0x0800,ip_proto=6, ipv4_src='10.0.0.2', ipv4_dst='10.0.0.1', tcp_src=tcp_pkt.src_port,
                                   tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(1)]
-            self.add_flow(datapath,10,match,actions)
+            actions1=[parser.OFPActionOutput(1)]
+            self.add_flow(datapath,10,match1,actions1)
             
         if (datapath.id == 5):
             match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, ipv4_src='10.0.0.1', ipv4_dst='10.0.0.2', tcp_src=tcp_pkt.src_port,
                                   tcp_dst=tcp_pkt.dst_port) 
             actions=[parser.OFPActionOutput(1)]
             self.add_flow(datapath,10,match,actions)
-            match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, ipv4_src='10.0.0.2', ipv4_dst='10.0.0.1',tcp_src=tcp_pkt.src_port,
+            match1=parser.OFPMatch(eth_type=0x0800,ip_proto=6, ipv4_src='10.0.0.2', ipv4_dst='10.0.0.1',tcp_src=tcp_pkt.src_port,
                                   tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(2)]
-            self.add_flow(datapath,10,match,actions)
+            actions1=[parser.OFPActionOutput(2)]
+            self.add_flow(datapath,10,match1,actions1)
             
         if (datapath.id == 1):
             match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, ipv4_src='10.0.0.1', ipv4_dst='10.0.0.2', tcp_src=tcp_pkt.src_port, 
@@ -200,7 +200,7 @@ class SimpleSwitch13(app_manager.RyuApp):
             actions=[parser.OFPActionOutput(2)]
             self.add_flow(datapath,10,match,actions)
             
-            match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, ipv4_src='10.0.0.2', ipv4_dst='10.0.0.1', tcp_src=tcp_pkt.src_port,
+            match1=parser.OFPMatch(eth_type=0x0800,ip_proto=6, ipv4_src='10.0.0.2', ipv4_dst='10.0.0.1', tcp_src=tcp_pkt.src_port,
                                   tcp_dst=tcp_pkt.dst_port)
-            actions=[parser.OFPActionOutput(1)]
-            self.add_flow(datapath,10,match,actions)
+            actions1=[parser.OFPActionOutput(1)]
+            self.add_flow(datapath,10,match1,actions1)
