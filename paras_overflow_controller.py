@@ -171,12 +171,17 @@ class SimpleSwitch13(app_manager.RyuApp):
     def handle_ip(self, datapath, in_port, pkt):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
+        eth_pkt = pkt.get_protocol(ethernet.ethernet)
         ipv4_pkt = pkt.get_protocol(ipv4.ipv4) # parse out the IPv4 pkt
         tcp_pkt = pkt.get_protocol(tcp.tcp)
         if (datapath.id == 4):
             match=parser.OFPMatch(eth_type=0x0800,ip_proto=6, ipv4_src='10.0.0.1', ipv4_dst='10.0.0.2', tcp_src=tcp_pkt.src_port, 
                                   tcp_dst=tcp_pkt.dst_port)
             actions=[parser.OFPActionOutput(2)]
+            
+            out = parser.OFPPacketOut(datapath, ofproto.OFP_NO_BUFFER, 
+			                  ofproto.OFPP_CONTROLLER, actions, pkt.data)
+            datapath.send_msg(out)
             self.add_flow(datapath,10,match,actions)
             
             match1=parser.OFPMatch(eth_type=0x0800,ip_proto=6, ipv4_src='10.0.0.2', ipv4_dst='10.0.0.1', tcp_src=tcp_pkt.src_port,
